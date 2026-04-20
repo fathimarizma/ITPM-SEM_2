@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+// Layout and UI Components
 import PublicNavbar from '../../components/Layout/PublicNavbar';
 import BoardingCard from '../../components/Boardings/BoardingCard';
 import BoardingFilter from '../../components/Boardings/BoardingFilter';
@@ -19,7 +20,7 @@ const SearchBoardings = () => {
     facilities: '',
     rating: ''
   });
-
+// Selected boarding for modal view
   const [selectedBoarding, setSelectedBoarding] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showMobileFilter, setShowMobileFilter] = useState(false);
@@ -46,9 +47,11 @@ const SearchBoardings = () => {
       setLoading(false);
     }
   };
-
+// Open boarding detail modal
   const openModal = async (boarding) => {
     const updatedBoarding = { ...boarding, viewCount: (boarding.viewCount || 0) + 1 };
+    
+    // Update UI list with new view count
     setSelectedBoarding(updatedBoarding);
     setBoardings(prev => prev.map(b => b._id === boarding._id ? updatedBoarding : b));
     setIsModalOpen(true);
