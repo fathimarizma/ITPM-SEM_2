@@ -281,3 +281,26 @@ exports.updateProfile = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Delete user account
+// @route   DELETE /api/auth/deleteaccount
+// @access  Private
+exports.deleteAccount = async (req, res, next) => {
+  try {
+    // Delete user and all related data
+    await User.findByIdAndDelete(req.user.id);
+
+    // Clear cookie
+    res.cookie('token', 'none', {
+      expires: new Date(Date.now() + 10 * 1000),
+      httpOnly: true,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Account deleted successfully',
+    });
+  } catch (error) {
+    next(error);
+  }
+};

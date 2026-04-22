@@ -6,6 +6,7 @@ const {
   logoutUser,
   getMe,
   updateProfile,
+  deleteAccount,
   resendVerificationCode
 } = require('../controllers/authController');
 
@@ -20,5 +21,6 @@ router.post('/resendcode', resendVerificationCode);
 router.get('/logout', logoutUser);
 router.get('/me', protect, getMe);
 router.put('/updatedetails', protect, updateProfile);
+router.delete('/deleteaccount', protect, deleteAccount);
 
 module.exports = router;

@@ -61,6 +61,11 @@ function App() {
         {/* Protected Dashboard Routes */}
         <Route path="/saved-boardings" element={<ProtectedRoute><SavedBoardings /></ProtectedRoute>} />
         
+        {/* Admin Route - Standalone (uses its own layout) */}
+        <Route path="/admin" element={
+          <ProtectedRoute><RoleRoute roles={['Admin']}><AdminDashboard /></RoleRoute></ProtectedRoute>
+        } />
+        
         <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
           
           <Route path="/dashboard" element={
@@ -82,12 +87,6 @@ function App() {
           <Route path="listings/edit/:id" element={
             <RoleRoute roles={['Owner']}><EditListing /></RoleRoute>
           } />
-
-          <Route path="admin" element={
-            <RoleRoute roles={['Admin']}><AdminDashboard /></RoleRoute>
-          } />
-
-
 
           <Route path="profile" element={<Profile />} />
 

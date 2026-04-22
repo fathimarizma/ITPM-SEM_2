@@ -1,22 +1,25 @@
 import React, { useContext, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AuthContext } from '../../context/AuthContext';
 import {
   FiUser, FiMail, FiShield, FiArrowLeft, FiPhone,
   FiMapPin, FiCalendar, FiCheckCircle,
-  FiAlertCircle, FiEdit3, FiGrid, FiInfo
+  FiAlertCircle, FiEdit3, FiGrid, FiInfo,
+  FiSave, FiX, FiTrash2
 } from 'react-icons/fi';
+import api from '../../api/axiosConfig';
+import { toast } from 'react-toastify';
 import MyRoommatePosts from './MyRoommatePosts';
 
-/* ─── Tabs config ──────────────────────────────────────────── */
+/* Tabs config */
 const TABS = [
   { id: 'info',    label: 'Personal Info',  icon: <FiUser size={15} /> },
   { id: 'account', label: 'Account Status', icon: <FiShield size={15} /> },
   { id: 'posts',   label: 'My Posts',       icon: <FiGrid size={15} /> },
 ];
 
-/* ─── Field card ───────────────────────────────────────────── */
+/* Field card */
 const Field = ({ label, value, icon, locked }) => (
   <div className="flex flex-col gap-1.5 p-4 rounded-2xl bg-white/60 backdrop-blur-sm border border-white/80 shadow-sm hover:shadow-md hover:bg-white/80 transition-all duration-200">
     <div className="flex items-center justify-between">
@@ -27,12 +30,12 @@ const Field = ({ label, value, icon, locked }) => (
     </div>
     <div className="flex items-center gap-2">
       <span className="text-slate-400 shrink-0">{icon}</span>
-      <span className="text-sm font-semibold text-slate-700 truncate">{value || '—'}</span>
+      <span className="text-sm font-semibold text-slate-700 truncate">{value || 'â'}</span>
     </div>
   </div>
 );
 
-/* ─── Status pill ──────────────────────────────────────────── */
+/* Status pill */
 const StatusPill = ({ ok, label, sublabel, icon }) => (
   <div className={`flex items-center gap-3 p-4 rounded-2xl border ${ok
     ? 'bg-emerald-50/80 border-emerald-200'
@@ -54,12 +57,22 @@ const StatusPill = ({ ok, label, sublabel, icon }) => (
   </div>
 );
 
-/* ══════════════════════════════════════════════════════════════ */
 const Profile = () => {
   const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('info');
+  const [isEditing, setIsEditing] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [formData, setFormData] = useState({
+    firstName: user?.firstName || '',
+    lastName: user?.lastName || '',
+    phoneNumber: user?.phoneNumber || '',
+    address: user?.address || '',
+    gender: user?.gender || '',
+    age: user?.age || ''
+  });
 
-  /* ── Loading state ── */
+  /* Loading state */
   if (!user) {
     return (
       <div
@@ -76,7 +89,7 @@ const Profile = () => {
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
             </svg>
           </div>
-          <p className="text-sm font-bold text-slate-600">Loading your profile…</p>
+          <p className="text-sm font-bold text-slate-600">Loading your profileâ¦</p>
         </div>
       </div>
     );
@@ -84,6 +97,53 @@ const Profile = () => {
 
   const initials = [user.firstName?.[0], user.lastName?.[0]].filter(Boolean).join('').toUpperCase() || 'U';
   const fullName  = [user.firstName, user.lastName].filter(Boolean).join(' ');
+
+  // Handler functions
+  const handleEditToggle = () => {
+    if (isEditing) {
+      // Reset form data when canceling
+      setFormData({
+        firstName: user?.firstName || '',
+        lastName: user?.lastName || '',
+        phoneNumber: user?.phoneNumber || '',
+        address: user?.address || '',
+        gender: user?.gender || '',
+        age: user?.age || ''
+      });
+    }
+    setIsEditing(!isEditing);
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await api.put('/auth/updatedetails', formData);
+      toast.success('Profile updated successfully!');
+      setIsEditing(false);
+      // You might want to update the user context here
+      window.location.reload(); // Simple refresh for now
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to update profile');
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    try {
+      await api.delete('/auth/deleteaccount');
+      toast.success('Account deleted successfully');
+      navigate('/register');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to delete account');
+    }
+  };
 
   return (
     <div
@@ -110,7 +170,7 @@ const Profile = () => {
 
       <div className="max-w-6xl mx-auto px-4 py-10 fade-up">
 
-        {/* ── TOP NAV BAR ── */}
+        {/* TOP NAV BAR */}
         <div className="flex items-center justify-between mb-8">
           <div>
             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-0.5">SLIIT Nest</p>
@@ -124,10 +184,10 @@ const Profile = () => {
           </Link>
         </div>
 
-        {/* ── MAIN LAYOUT: Sidebar + Content ── */}
+        {/* MAIN LAYOUT: Sidebar + Content */}
         <div className="flex flex-col lg:flex-row gap-6 items-start">
 
-          {/* ════ LEFT SIDEBAR ════ */}
+          {/* LEFT SIDEBAR */}
           <motion.div
             initial={{ opacity: 0, x: -24 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.1 }}
             className="w-full lg:w-80 shrink-0 space-y-4"
@@ -199,7 +259,7 @@ const Profile = () => {
                   <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">{icon}</div>
                   <div className="min-w-0">
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-none mb-0.5">{label}</p>
-                    <p className="text-sm font-semibold text-slate-700 truncate">{val || '—'}</p>
+                    <p className="text-sm font-semibold text-slate-700 truncate">{val || 'â'}</p>
                   </div>
                 </div>
               ))}
@@ -210,18 +270,18 @@ const Profile = () => {
               className="rounded-3xl p-5 flex items-center gap-3 border border-blue-800/20 shadow-[0_8px_24px_rgba(11,43,86,0.2)]"
               style={{ background: 'linear-gradient(135deg,#0b2b56,#1e40af)' }}
             >
-              <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-xl shrink-0">🏅</div>
+              <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-xl shrink-0">ð</div>
               <div className="flex-1 min-w-0">
                 <p className="text-white font-extrabold text-sm">SLIIT Nest Member</p>
-                <p className="text-blue-300 text-xs truncate">{user.role} · Active</p>
+                <p className="text-blue-300 text-xs truncate">{user.role} Â· Active</p>
               </div>
               <div className="flex gap-px shrink-0">
-                {[1,2,3,4,5].map(s => <span key={s} className="text-yellow-300 text-xs">★</span>)}
+                {[1,2,3,4,5].map(s => <span key={s} className="text-yellow-300 text-xs">â</span>)}
               </div>
             </div>
           </motion.div>
 
-          {/* ════ RIGHT CONTENT PANEL ════ */}
+          {/* RIGHT CONTENT PANEL */}
           <motion.div
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}
             className="flex-1 min-w-0"
@@ -247,7 +307,7 @@ const Profile = () => {
             {/* Tab Panels */}
             <AnimatePresence mode="wait">
 
-              {/* ── PERSONAL INFO TAB ── */}
+              {/* PERSONAL INFO TAB */}
               {activeTab === 'info' && (
                 <motion.div
                   key="info"
@@ -260,36 +320,156 @@ const Profile = () => {
                       <div className="w-1 h-6 rounded-full bg-gradient-to-b from-[#0b2b56] to-teal-400"></div>
                       <h3 className="text-base font-extrabold text-slate-700">Personal Information</h3>
                     </div>
-                    <span className="text-xs text-slate-400 font-medium flex items-center gap-1">
-                      <FiInfo size={12} /> Your profile details
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-slate-400 font-medium flex items-center gap-1">
+                        <FiInfo size={12} /> Your profile details
+                      </span>
+                      {!isEditing && (
+                        <button
+                          onClick={handleEditToggle}
+                          className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors"
+                        >
+                          <FiEdit3 size={12} /> Edit
+                        </button>
+                      )}
+                    </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <Field label="First Name" value={user.firstName} icon={<FiUser size={14} />} />
-                    <Field label="Last Name"  value={user.lastName}  icon={<FiUser size={14} />} />
-                  </div>
+                  {/* Display Mode */}
+                  {!isEditing ? (
+                    <>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <Field label="First Name" value={user.firstName} icon={<FiUser size={14} />} />
+                        <Field label="Last Name"  value={user.lastName}  icon={<FiUser size={14} />} />
+                      </div>
 
-                  <Field label="Email Address" value={user.email} icon={<FiMail size={14} />} locked />
+                      <Field label="Email Address" value={user.email} icon={<FiMail size={14} />} locked />
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <Field label="Phone Number" value={user.phoneNumber} icon={<FiPhone size={14} />} />
-                    <Field label="Address"       value={user.address}    icon={<FiMapPin size={14} />} />
-                  </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <Field label="Phone Number" value={user.phoneNumber} icon={<FiPhone size={14} />} />
+                        <Field label="Address"       value={user.address}    icon={<FiMapPin size={14} />} />
+                      </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <Field label="Gender" value={user.gender}                           icon={<FiUser size={14} />} />
-                    <Field label="Age"    value={user.age ? `${user.age} years` : null} icon={<FiCalendar size={14} />} />
-                  </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <Field label="Gender" value={user.gender}                           icon={<FiUser size={14} />} />
+                        <Field label="Age"    value={user.age ? `${user.age} years` : null} icon={<FiCalendar size={14} />} />
+                      </div>
+                    </>
+                  ) : (
+                    /* Edit Mode */
+                    <form onSubmit={handleUpdateProfile} className="space-y-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">First Name</label>
+                          <input
+                            type="text"
+                            name="firstName"
+                            value={formData.firstName}
+                            onChange={handleInputChange}
+                            className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white/70 backdrop-blur-sm text-sm font-medium text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                            placeholder="Enter first name"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Last Name</label>
+                          <input
+                            type="text"
+                            name="lastName"
+                            value={formData.lastName}
+                            onChange={handleInputChange}
+                            className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white/70 backdrop-blur-sm text-sm font-medium text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                            placeholder="Enter last name"
+                          />
+                        </div>
+                      </div>
 
-                  <div className="flex items-center gap-3 px-5 py-3.5 rounded-2xl bg-blue-50/80 border border-blue-200 text-blue-700 text-xs font-semibold">
-                    <FiEdit3 size={14} className="shrink-0" />
-                    To update your information, visit your account settings.
-                  </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Email Address</label>
+                        <input
+                          type="email"
+                          value={user.email}
+                          disabled
+                          className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-100 text-sm font-medium text-slate-500 cursor-not-allowed"
+                          placeholder="Email (locked)"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Phone Number</label>
+                          <input
+                            type="tel"
+                            name="phoneNumber"
+                            value={formData.phoneNumber}
+                            onChange={handleInputChange}
+                            className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white/70 backdrop-blur-sm text-sm font-medium text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                            placeholder="Enter phone number"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Address</label>
+                          <input
+                            type="text"
+                            name="address"
+                            value={formData.address}
+                            onChange={handleInputChange}
+                            className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white/70 backdrop-blur-sm text-sm font-medium text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                            placeholder="Enter address"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Gender</label>
+                          <select
+                            name="gender"
+                            value={formData.gender}
+                            onChange={handleInputChange}
+                            className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white/70 backdrop-blur-sm text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                          >
+                            <option value="">Select gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Age</label>
+                          <input
+                            type="number"
+                            name="age"
+                            value={formData.age}
+                            onChange={handleInputChange}
+                            className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white/70 backdrop-blur-sm text-sm font-medium text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                            placeholder="Enter age"
+                            min="16"
+                            max="100"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3 pt-4">
+                        <button
+                          type="submit"
+                          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 text-white font-semibold text-sm hover:bg-blue-700 transition-colors shadow-md"
+                        >
+                          <FiSave size={14} /> Save Changes
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleEditToggle}
+                          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-200 text-slate-700 font-semibold text-sm hover:bg-slate-300 transition-colors"
+                        >
+                          <FiX size={14} /> Cancel
+                        </button>
+                      </div>
+                    </form>
+                  )}
                 </motion.div>
               )}
 
-              {/* ── ACCOUNT STATUS TAB ── */}
+              {/* ACCOUNT STATUS TAB */}
               {activeTab === 'account' && (
                 <motion.div
                   key="account"
@@ -305,19 +485,19 @@ const Profile = () => {
                   <div className="space-y-3">
                     <StatusPill
                       ok={true}
-                      icon="🎓"
+                      icon="ð"
                       label={`Role: ${user.role}`}
                       sublabel="Your assigned platform role"
                     />
                     <StatusPill
                       ok={!!user.isVerified}
-                      icon="✉️"
+                      icon="â"
                       label={user.isVerified ? 'Email Verified' : 'Email Not Verified'}
                       sublabel={user.isVerified ? 'Your email address is confirmed' : 'Please check your inbox to verify'}
                     />
                     <StatusPill
                       ok={true}
-                      icon="✅"
+                      icon="â"
                       label="Profile Active"
                       sublabel="Your profile is visible to others"
                     />
@@ -325,9 +505,9 @@ const Profile = () => {
 
                   <div className="grid grid-cols-3 gap-3">
                     {[
-                      { label: 'Member Since', value: '2024',       icon: '📅' },
-                      { label: 'Platform',     value: 'SLIIT Nest', icon: '🏠' },
-                      { label: 'Status',       value: 'Active',     icon: '🟢' },
+                      { label: 'Member Since', value: '2024',       icon: 'ð' },
+                      { label: 'Platform',     value: 'SLIIT Nest', icon: 'ð' },
+                      { label: 'Status',       value: 'Active',     icon: 'ð' },
                     ].map(s => (
                       <div key={s.label} className="flex flex-col items-center gap-1 p-4 rounded-2xl bg-white/60 backdrop-blur-sm border border-white/80 text-center">
                         <span className="text-xl">{s.icon}</span>
@@ -336,10 +516,29 @@ const Profile = () => {
                       </div>
                     ))}
                   </div>
+
+                  {/* Delete Account Section */}
+                  <div className="mt-6 p-4 rounded-2xl bg-red-50/80 border border-red-200">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <FiTrash2 size={16} className="text-red-500" />
+                        <div>
+                          <h4 className="text-sm font-extrabold text-red-700">Delete Account</h4>
+                          <p className="text-xs text-red-600">Permanently remove your account and all data</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setShowDeleteModal(true)}
+                        className="px-3 py-1.5 rounded-xl text-xs font-bold bg-red-500 text-white border border-red-600 hover:bg-red-600 transition-colors"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
                 </motion.div>
               )}
 
-              {/* ── MY POSTS TAB ── */}
+              {/* MY POSTS TAB */}
               {activeTab === 'posts' && (
                 <motion.div
                   key="posts"
@@ -354,7 +553,7 @@ const Profile = () => {
                     ? <MyRoommatePosts />
                     : (
                       <div className="text-center py-16 rounded-3xl bg-white/60 border border-white/70 backdrop-blur-xl">
-                        <span className="text-4xl block mb-3">🏠</span>
+                        <span className="text-4xl block mb-3">ð</span>
                         <p className="text-slate-500 font-semibold text-sm">Only students can manage roommate posts.</p>
                       </div>
                     )
@@ -367,6 +566,72 @@ const Profile = () => {
 
         </div>
       </div>
+
+      {/* Delete Account Modal */}
+      <AnimatePresence>
+        {showDeleteModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setShowDeleteModal(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-white/20"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center">
+                  <FiTrash2 size={20} className="text-red-500" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-extrabold text-slate-800">Delete Account</h3>
+                  <p className="text-sm text-slate-500">This action cannot be undone</p>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <p className="text-sm text-slate-600 leading-relaxed">
+                  Are you sure you want to delete your account? This will permanently remove all your data including:
+                </p>
+                <ul className="mt-3 space-y-1 text-sm text-slate-600">
+                  <li className="flex items-center gap-2">
+                    <span className="w-1 h-1 bg-slate-400 rounded-full"></span>
+                    Personal information and profile
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="w-1 h-1 bg-slate-400 rounded-full"></span>
+                    Roommate posts and listings
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="w-1 h-1 bg-slate-400 rounded-full"></span>
+                    All account data and preferences
+                  </li>
+                </ul>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-semibold text-sm hover:bg-slate-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteAccount}
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-red-500 text-white font-semibold text-sm hover:bg-red-600 transition-colors shadow-md"
+                >
+                  Delete Forever
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

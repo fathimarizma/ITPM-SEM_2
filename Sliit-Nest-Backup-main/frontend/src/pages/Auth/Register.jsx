@@ -73,7 +73,13 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen" style={{ background: C.bg, fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
+    <div 
+      className="min-h-screen font-sans flex flex-col bg-fixed bg-cover bg-center"
+      style={{ 
+        backgroundImage: 'linear-gradient(rgba(243, 244, 246, 0.3), rgba(243, 244, 246, 0.4)), url(/sliit.jpg)',
+        fontFamily: "'Plus Jakarta Sans',sans-serif" 
+      }}
+    >
       <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
       <style>{`
@@ -82,7 +88,7 @@ const Register = () => {
       `}</style>
 
       {/* ── TOP NAV ── */}
-      <nav className="sticky top-0 z-30 border-b" style={{ background: C.white, borderColor: C.border }}>
+      <nav className="sticky top-0 z-30 border-b backdrop-blur-xl bg-white/90" style={{ borderColor: C.border }}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center font-extrabold text-xs shadow-sm"
@@ -93,7 +99,7 @@ const Register = () => {
             </div>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl border"
+            <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl border backdrop-blur-sm bg-white/50"
               style={{ borderColor: C.border }}>
               <span className="text-xs font-bold" style={{ color: C.muted }}>Already have an account?</span>
               <Link
@@ -108,16 +114,8 @@ const Register = () => {
         </div>
       </nav>
 
-      {/* ── BACKGROUND DECORATION ── */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] right-[-10%] w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl opacity-30"
-          style={{ background: C.primary, animation: 'blob 7s infinite' }}></div>
-        <div className="absolute bottom-[-10%] left-[-10%] w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl opacity-30"
-          style={{ background: C.secondaryTxt, animation: 'blob 7s infinite 2s' }}></div>
-      </div>
-
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 relative z-10">
-        <div className="max-w-xl mx-auto" style={{ animation: "fadeUp 0.5s ease both" }}>
+        <div className="max-w-xl mx-auto bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50 p-8" style={{ animation: "fadeUp 0.5s ease both" }}>
           
           {/* ── HEADER ── */}
           <div className="text-center mb-8">

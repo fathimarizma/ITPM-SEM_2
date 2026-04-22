@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { FiGrid, FiUsers, FiCreditCard, FiEye, FiRefreshCw, FiCheck, FiX } from 'react-icons/fi';
+import { Link, useLocation } from 'react-router-dom';
+import { FiGrid, FiUsers, FiCreditCard, FiEye, FiRefreshCw, FiCheck, FiX, FiHome, FiSettings, FiLogOut, FiBarChart, FiFileText, FiShield } from 'react-icons/fi';
 import api from '../../api/axiosConfig';
 import { toast } from 'react-toastify';
 import BoardingModal from '../../components/Boardings/BoardingModal';
 
 const AdminDashboard = () => {
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState('listings');
   const [payments, setPayments] = useState([]);
   const [listings, setListings] = useState([]);
@@ -12,6 +14,7 @@ const AdminDashboard = () => {
   const [lastUpdated, setLastUpdated] = useState(null);
   const [selectedListing, setSelectedListing] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [stats, setStats] = useState([
     { name: 'Total Listings', value: '0', icon: FiGrid, color: 'text-blue-600', bg: 'bg-blue-100' },
     { name: 'Verified Students', value: '0', icon: FiUsers, color: 'text-green-600', bg: 'bg-green-100' },
@@ -147,8 +150,8 @@ const AdminDashboard = () => {
     switch (activeTab) {
       case 'payments':
         return (
-          <div className="bg-white shadow rounded-lg border border-gray-100 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+          <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg border border-white/50 overflow-hidden">
+            <div className="px-6 py-4 border-b border-white/20 flex justify-between items-center bg-white/60">
               <div>
                 <h3 className="text-lg font-medium text-gray-900">Payment Approvals</h3>
                 <p className="text-sm text-gray-500">
@@ -162,7 +165,7 @@ const AdminDashboard = () => {
               </div>
               <button 
                 onClick={fetchPayments}
-                className="flex items-center gap-2 px-3 py-2 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors font-medium shadow-sm"
                 disabled={loading}
               >
                 <FiRefreshCw className={loading ? 'animate-spin' : ''} />
@@ -175,67 +178,60 @@ const AdminDashboard = () => {
             ) : payments.length === 0 ? (
               <div className="p-6 text-center text-gray-500">No pending payments</div>
             ) : (
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+              <table className="w-full divide-y divide-white/20">
+                <thead className="bg-white/40">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Listing Details</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment Info</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider w-2/5">Listing</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider w-1/5">Payment</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider w-1/5">Amount</th>
+                    <th className="px-3 py-2 text-center text-xs font-medium text-gray-700 uppercase tracking-wider w-1/5">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-white/30 divide-y divide-white/20">
                   {payments.map((payment) => (
-                    <tr key={payment._id}>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">{payment.listingId?.title || 'N/A'}</div>
-                          <div className="text-sm text-gray-500">{payment.listingId?.address || 'N/A'}</div>
+                    <tr key={payment._id} className="hover:bg-white/50 transition-colors">
+                      <td className="px-3 py-3">
+                        <div className="max-w-xs">
+                          <div className="text-sm font-medium text-gray-900 truncate">{payment.listingId?.title || 'N/A'}</div>
+                          <div className="text-xs text-gray-500 truncate">{payment.listingId?.address || 'N/A'}</div>
                           <div className="text-xs text-gray-400">by {payment.user?.firstName || payment.user?.email?.split('@')[0] || 'Unknown'} {payment.user?.lastName || ''}</div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-3 py-3">
                         <div className="text-sm text-gray-900">{payment.paymentMethod.replace('_', ' ')}</div>
-                        <div className="text-xs text-gray-500">ID: {payment.transactionId}</div>
-                        <button 
-                          onClick={() => window.open(`/uploads/payments/${payment.paymentSlip}`, '_blank')}
-                          className="text-blue-600 hover:text-blue-800 text-xs flex items-center gap-1"
-                        >
-                          <FiEye /> View Slip
-                        </button>
+                        <div className="text-xs text-gray-500 truncate">ID: {payment.transactionId}</div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        Rs. {payment.amount.toLocaleString()}
+                      <td className="px-3 py-3 text-sm">
+                        <div className="text-gray-900 font-medium">Rs. {payment.amount.toLocaleString()}</div>
+                        <div className="text-xs text-gray-500">
+                          <span className={`px-2 py-0.5 inline-flex text-xs leading-4 font-semibold rounded-full ${
+                            payment.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                            payment.status === 'approved' ? 'bg-green-100 text-green-800' :
+                            'bg-red-100 text-red-800'
+                          }`}>
+                            {payment.status}
+                          </span>
+                        </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          payment.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                          payment.status === 'approved' ? 'bg-green-100 text-green-800' :
-                          'bg-red-100 text-red-800'
-                        }`}>
-                          {payment.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <td className="px-3 py-3 text-center">
                         {payment.status === 'pending' && (
-                          <>
+                          <div className="flex gap-1 justify-center">
                             <button 
                               onClick={() => handleApprovePayment(payment._id)}
-                              className="text-green-600 hover:text-green-900 mr-4 flex items-center gap-1"
+                              className="text-green-600 hover:text-green-900 px-2 py-1 rounded bg-green-50 hover:bg-green-100 transition-colors flex items-center justify-center gap-1 text-xs font-medium"
                             >
-                              <FiCheck /> Approve
+                              <FiCheck size={12} /> 
                             </button>
                             <button 
                               onClick={() => handleRejectPayment(payment._id)}
-                              className="text-red-600 hover:text-red-900 flex items-center gap-1"
+                              className="text-red-600 hover:text-red-900 px-2 py-1 rounded bg-red-50 hover:bg-red-100 transition-colors flex items-center justify-center gap-1 text-xs font-medium"
                             >
-                              <FiX /> Reject
+                              <FiX size={12} />
                             </button>
-                          </>
+                          </div>
                         )}
                         {payment.status !== 'pending' && payment.adminNotes && (
-                          <div className="text-xs text-gray-500 italic">{payment.adminNotes}</div>
+                          <div className="text-xs text-gray-500 italic truncate">{payment.adminNotes}</div>
                         )}
                       </td>
                     </tr>
@@ -247,21 +243,21 @@ const AdminDashboard = () => {
         );
       case 'reviews':
         return (
-          <div className="bg-white shadow rounded-lg border border-gray-100 p-6 text-center text-gray-500">
+          <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg border border-white/50 p-6 text-center text-gray-500">
             No reported reviews at this time.
           </div>
         );
       case 'roommates':
         return (
-          <div className="bg-white shadow rounded-lg border border-gray-100 p-6 text-center text-gray-500">
+          <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg border border-white/50 p-6 text-center text-gray-500">
             No roommate posts require moderation.
           </div>
         );
       case 'listings':
       default:
         return (
-          <div className="bg-white shadow rounded-lg border border-gray-100 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+          <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg border border-white/50 overflow-hidden">
+            <div className="px-6 py-4 border-b border-white/20 flex justify-between items-center bg-white/60">
               <div>
                 <h3 className="text-lg font-medium text-gray-900">Pending Listing Approvals</h3>
                 <p className="text-sm text-gray-500">
@@ -275,7 +271,7 @@ const AdminDashboard = () => {
               </div>
               <button 
                 onClick={fetchListings}
-                className="flex items-center gap-2 px-3 py-2 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors font-medium shadow-sm"
                 disabled={loading}
               >
                 <FiRefreshCw className={loading ? 'animate-spin' : ''} />
@@ -288,57 +284,58 @@ const AdminDashboard = () => {
             ) : listings.length === 0 ? (
               <div className="p-6 text-center text-gray-500">No pending listings</div>
             ) : (
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+              <table className="w-full divide-y divide-white/20">
+                <thead className="bg-white/40">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Listing Details</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Owner</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rent</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider w-2/5">Listing</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider w-1/5">Owner</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider w-1/5">Rent</th>
+                    <th className="px-3 py-2 text-center text-xs font-medium text-gray-700 uppercase tracking-wider w-1/5">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-white/30 divide-y divide-white/20">
                   {listings.map((listing) => (
-                    <tr key={listing._id}>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">{listing.title}</div>
-                          <div className="text-sm text-gray-500">{listing.accommodationType}</div>
-                          <div className="text-xs text-gray-400">Capacity: {listing.capacity}</div>
+                    <tr key={listing._id} className="hover:bg-white/50 transition-colors">
+                      <td className="px-3 py-3">
+                        <div className="max-w-xs">
+                          <div className="text-sm font-medium text-gray-900 truncate">{listing.title}</div>
+                          <div className="text-xs text-gray-500">{listing.accommodationType} · {listing.capacity} guests</div>
+                          <div className="text-xs text-gray-400 truncate">{listing.address}</div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
+                      <td className="px-3 py-3">
+                        <div className="text-sm text-gray-900 truncate">
                           {listing.ownerId?.firstName} {listing.ownerId?.lastName}
                         </div>
-                        <div className="text-xs text-gray-500">{listing.ownerId?.email}</div>
+                        <div className="text-xs text-gray-500 truncate">{listing.ownerId?.email}</div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {listing.address}
+                      <td className="px-3 py-3 text-sm">
+                        <div className="text-gray-900 font-medium">Rs. {listing.monthlyRent?.toLocaleString()}</div>
+                        <div className="text-xs text-gray-500">per month</div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        Rs. {listing.monthlyRent?.toLocaleString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button 
-                          onClick={() => handleViewListing(listing)}
-                          className="text-blue-600 hover:text-blue-900 mr-4 flex items-center gap-1"
-                        >
-                          <FiEye /> View
-                        </button>
-                        <button 
-                          onClick={() => handleApproveListing(listing._id)}
-                          className="text-green-600 hover:text-green-900 mr-4 flex items-center gap-1"
-                        >
-                          <FiCheck /> Approve
-                        </button>
-                        <button 
-                          onClick={() => handleRejectListing(listing._id)}
-                          className="text-red-600 hover:text-red-900 flex items-center gap-1"
-                        >
-                          <FiX /> Reject
-                        </button>
+                      <td className="px-3 py-3 text-center">
+                        <div className="flex flex-col gap-1">
+                          <button 
+                            onClick={() => handleViewListing(listing)}
+                            className="text-blue-600 hover:text-blue-900 px-2 py-1 rounded bg-blue-50 hover:bg-blue-100 transition-colors flex items-center justify-center gap-1 text-xs font-medium"
+                          >
+                            <FiEye size={12} /> View
+                          </button>
+                          <div className="flex gap-1">
+                            <button 
+                              onClick={() => handleApproveListing(listing._id)}
+                              className="text-green-600 hover:text-green-900 px-2 py-1 rounded bg-green-50 hover:bg-green-100 transition-colors flex items-center justify-center gap-1 text-xs font-medium"
+                            >
+                              <FiCheck size={12} /> 
+                            </button>
+                            <button 
+                              onClick={() => handleRejectListing(listing._id)}
+                              className="text-red-600 hover:text-red-900 px-2 py-1 rounded bg-red-50 hover:bg-red-100 transition-colors flex items-center justify-center gap-1 text-xs font-medium"
+                            >
+                              <FiX size={12} />
+                            </button>
+                          </div>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -351,48 +348,178 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-      
-      {/* Stats row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {stats.map((stat, idx) => (
-          <div key={idx} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
-            <div className={`p-4 rounded-xl ${stat.bg} ${stat.color}`}>
-              <stat.icon size={24} />
-            </div>
-            <div>
-              <p className="text-sm text-gray-500 font-medium">{stat.name}</p>
-              <h3 className="text-2xl font-bold text-gray-900">{stat.value}</h3>
+    <div 
+      className="min-h-screen font-sans bg-fixed bg-cover bg-center flex"
+      style={{ 
+        backgroundImage: 'linear-gradient(rgba(243, 244, 246, 0.3), rgba(243, 244, 246, 0.4)), url(/sliit.jpg)',
+        fontFamily: "'Plus Jakarta Sans',sans-serif" 
+      }}
+    >
+      <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+      <style>{`
+        @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes blob { 0%,100%{transform:translate(0px,0px) scale(1)} 33%{transform:translate(30px,-50px) scale(1.1)} 66%{transform:translate(-20px,20px) scale(0.9)} }
+      `}</style>
+
+      {/* Sidebar */}
+      <div className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-white/90 backdrop-blur-xl border-r border-white/30 transition-all duration-300 ease-in-out shadow-xl`}>
+        <div className="flex flex-col h-full">
+          {/* Sidebar Header */}
+          <div className="p-4 border-b border-white/20">
+            <div className="flex items-center justify-between">
+              <div className={`flex items-center gap-3 ${!sidebarOpen && 'justify-center'}`}>
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <FiShield className="w-5 h-5 text-white" />
+                </div>
+                {sidebarOpen && (
+                  <div>
+                    <h2 className="font-bold text-[#0b2b56] text-lg">SLIIT Nest</h2>
+                    <p className="text-xs text-gray-500">Admin Panel</p>
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="p-2 rounded-lg hover:bg-white/50 transition-colors"
+              >
+                <FiGrid className="w-4 h-4 text-gray-600" />
+              </button>
             </div>
           </div>
-        ))}
-      </div>
 
-      {/* Tabs */}
-      <div className="pt-4">
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8">
-            {['payments', 'listings', 'reviews', 'roommates'].map(tab => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`${
-                  activeTab === tab
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm capitalize`}
-              >
-                {tab === 'payments' ? 'Payment Approvals' : `Pending ${tab}`}
-              </button>
-            ))}
+          {/* Navigation Menu */}
+          <nav className="flex-1 p-4 space-y-1">
+            <Link
+              to="/"
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${
+                location.pathname === '/' 
+                  ? 'bg-[#0b2b56] text-white shadow-md' 
+                  : 'text-gray-700 hover:bg-white/60'
+              }`}
+            >
+              <FiHome className="w-5 h-5 flex-shrink-0" />
+              {sidebarOpen && <span className="font-medium">Home</span>}
+            </Link>
+
+            <button
+              onClick={() => setActiveTab('payments')}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${
+                activeTab === 'payments' 
+                  ? 'bg-[#0b2b56] text-white shadow-md' 
+                  : 'text-gray-700 hover:bg-white/60'
+              }`}
+            >
+              <FiCreditCard className="w-5 h-5 flex-shrink-0" />
+              {sidebarOpen && <span className="font-medium">Payments</span>}
+            </button>
+
+            <button
+              onClick={() => setActiveTab('listings')}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${
+                activeTab === 'listings' 
+                  ? 'bg-[#0b2b56] text-white shadow-md' 
+                  : 'text-gray-700 hover:bg-white/60'
+              }`}
+            >
+              <FiGrid className="w-5 h-5 flex-shrink-0" />
+              {sidebarOpen && <span className="font-medium">Listings</span>}
+            </button>
+
+            <button
+              onClick={() => setActiveTab('reviews')}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${
+                activeTab === 'reviews' 
+                  ? 'bg-[#0b2b56] text-white shadow-md' 
+                  : 'text-gray-700 hover:bg-white/60'
+              }`}
+            >
+              <FiFileText className="w-5 h-5 flex-shrink-0" />
+              {sidebarOpen && <span className="font-medium">Reviews</span>}
+            </button>
+
+            <button
+              onClick={() => setActiveTab('roommates')}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${
+                activeTab === 'roommates' 
+                  ? 'bg-[#0b2b56] text-white shadow-md' 
+                  : 'text-gray-700 hover:bg-white/60'
+              }`}
+            >
+              <FiUsers className="w-5 h-5 flex-shrink-0" />
+              {sidebarOpen && <span className="font-medium">Roommates</span>}
+            </button>
           </nav>
+
+          {/* Sidebar Footer */}
+          <div className="p-4 border-t border-white/20 space-y-1">
+            <Link
+              to="/dashboard"
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 text-gray-700 hover:bg-white/60`}
+            >
+              <FiSettings className="w-5 h-5 flex-shrink-0" />
+              {sidebarOpen && <span className="font-medium">User Dashboard</span>}
+            </Link>
+            <button
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 text-red-600 hover:bg-red-50`}
+            >
+              <FiLogOut className="w-5 h-5 flex-shrink-0" />
+              {sidebarOpen && <span className="font-medium">Logout</span>}
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Tab Content */}
-      <div className="mt-6">
-        {renderTabContent()}
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col">
+        {/* Top Navigation Bar */}
+        <header className="bg-white/90 backdrop-blur-xl border-b border-white/30 shadow-sm">
+          <div className="px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-[#0b2b56]">
+                  {activeTab === 'payments' ? 'Payment Management' : 
+                   activeTab === 'listings' ? 'Listing Management' :
+                   activeTab === 'reviews' ? 'Review Management' :
+                   activeTab === 'roommates' ? 'Roommate Management' :
+                   'Admin Dashboard'}
+                </h1>
+                <p className="text-sm text-gray-500 mt-1">Manage and monitor SLIIT Nest platform</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="text-sm text-gray-500">
+                  Last updated: {lastUpdated ? lastUpdated.toLocaleTimeString() : 'Never'}
+                </div>
+                <button className="p-2 rounded-lg hover:bg-white/50 transition-colors">
+                  <FiRefreshCw className="w-4 h-4 text-gray-600" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Page Content */}
+        <main className="flex-1 p-6 overflow-auto">
+          {/* Stats row */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            {stats.map((stat, idx) => (
+              <div key={idx} className="bg-white/80 backdrop-blur-xl p-6 rounded-2xl shadow-lg border border-white/50 flex items-center gap-4" style={{ animation: "fadeUp 0.5s ease both", animationDelay: `${idx * 0.1}s` }}>
+                <div className={`p-4 rounded-xl ${stat.bg} ${stat.color}`}>
+                  <stat.icon size={24} />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500 font-medium">{stat.name}</p>
+                  <h3 className="text-2xl font-bold text-gray-900">{stat.value}</h3>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Tab Content */}
+          <div>
+            {renderTabContent()}
+          </div>
+        </main>
       </div>
 
       {/* Viewing details modal */}
@@ -408,6 +535,7 @@ const AdminDashboard = () => {
       )}
     </div>
   );
-};
+
+}
 
 export default AdminDashboard;
