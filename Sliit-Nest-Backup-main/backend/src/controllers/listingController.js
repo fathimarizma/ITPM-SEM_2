@@ -2,7 +2,7 @@ const Listing = require('../models/Listing');
 
 // @desc    Get all listings for logged in owner 
 // @route   GET /api/listings/my-listings
-// @access  Private/Owner  
+// @access  Private/Owner   
 exports.getOwnerListings = async (req, res, next) => {
   try {
     const listings = await Listing.find({ ownerId: req.user._id }).sort({ createdAt: -1 });
