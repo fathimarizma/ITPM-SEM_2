@@ -11,7 +11,7 @@ exports.getApprovedBoardings = async (req, res, next) => {
 
     let query = { status: 'Approved' };
 
-    // Text search (Title or Address)
+    
     if (search) {
       query.$or = [
         { title: { $regex: search, $options: 'i' } },
@@ -19,7 +19,7 @@ exports.getApprovedBoardings = async (req, res, next) => {
       ];
     }
 
-    // Price filtering
+    
     if (minPrice || maxPrice) {
       query.monthlyRent = {};
       if (minPrice) query.monthlyRent.$gte = Number(minPrice);
