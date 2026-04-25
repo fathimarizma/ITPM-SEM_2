@@ -3,8 +3,8 @@ const Review = require('../models/Review');
 const User = require('../models/User');
 
 // @desc    Get all approved boardings (searchable)
-// @route   GET /api/boardings
-// @access  Public
+
+
 exports.getApprovedBoardings = async (req, res, next) => {
   try {
     const { search, minPrice, maxPrice, type, capacity, facilities, rating } = req.query;

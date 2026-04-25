@@ -1,7 +1,7 @@
 const Connection = require('../models/Connection');
 const User = require('../models/User');
 
-// @desc    Send a connection request
+
 // @route   POST /api/connections/send
 // @access  Private (Student)
 exports.sendConnectionRequest = async (req, res, next) => {
