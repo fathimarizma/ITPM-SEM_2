@@ -1,6 +1,6 @@
 const Listing = require('../models/Listing');
 
-// @desc    Get all listings for logged in owner
+// @desc    Get all listings for logged in owner 
 // @route   GET /api/listings/my-listings
 // @access  Private/Owner
 exports.getOwnerListings = async (req, res, next) => {
