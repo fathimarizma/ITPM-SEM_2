@@ -19,7 +19,7 @@ exports.sendConnectionRequest = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Receiver not found' });
     }
 
-    // 1. Check if exact connection already exists
+    
     let forwardConnection = await Connection.findOne({
       sender: senderId,
       receiver: receiverId,
